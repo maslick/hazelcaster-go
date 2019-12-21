@@ -18,7 +18,7 @@ func main() {
 }
 
 func createNewReading(hazelcaster *Hazelcaster) {
-	reading := Reading{
+	reading := &Reading{
 		Name:      fmt.Sprintf("reading%d", i),
 		Timestamp: time.Now().Unix(),
 	}

@@ -52,7 +52,7 @@ func newHzClient(clearOnStartup ...bool) *Hazelcaster {
 	return &Hazelcaster{client: hazelcastClient}
 }
 
-func (hz *Hazelcaster) persist(reading Reading) error {
+func (hz *Hazelcaster) persist(reading *Reading) error {
 	readingsList, err := hz.client.GetList(collectionName)
 	if err != nil {
 		return err
@@ -66,7 +66,7 @@ func (hz *Hazelcaster) persist(reading Reading) error {
 	return nil
 }
 
-func (hz *Hazelcaster) fetch() ([]Reading, error) {
+func (hz *Hazelcaster) fetch() ([]*Reading, error) {
 	list, err := hz.client.GetList(collectionName)
 	if err != nil {
 		return nil, err
@@ -79,9 +79,9 @@ func (hz *Hazelcaster) fetch() ([]Reading, error) {
 		return nil, err
 	}
 
-	var result []Reading
+	var result []*Reading
 	for _, r := range slice {
-		result = append(result, r.(Reading))
+		result = append(result, r.(*Reading))
 	}
 
 	sort.Slice(result, func(i, j int) bool {
