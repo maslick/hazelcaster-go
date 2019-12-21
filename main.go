@@ -22,7 +22,7 @@ func createNewReading(hazelcaster *Hazelcaster) {
 		Name:      fmt.Sprintf("reading%d", i),
 		Timestamp: time.Now().Unix(),
 	}
-	log.Println("Pushing reading to Hazelcast:", reading)
+	log.Println("Pushing reading to Hazelcast:", *reading)
 	err := hazelcaster.persist(reading)
 	if err != nil {
 		log.Println(err)

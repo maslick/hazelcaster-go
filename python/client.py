@@ -4,9 +4,26 @@ from hazelcast.serialization.api import Portable
 
 
 class Reading(Portable):
-    def __init__(self, name, ts):
+    CLASS_ID = 1
+    FACTORY_ID = 1
+
+    def __init__(self, name=None, ts=None):
         self.Name = name
         self.Timestamp = ts
+
+    def get_class_id(self):
+        return self.CLASS_ID
+
+    def get_factory_id(self):
+        return self.FACTORY_ID
+
+    def write_portable(self, writer):
+        writer.write_utf("Name", self.Name)
+        writer.write_long("Timestamp", self.Timestamp)
+
+    def read_portable(self, reader):
+        self.Name = reader.read_utf("Name")
+        self.Timestamp = reader.read_long("Timestamp")
 
 
 if __name__ == "__main__":
@@ -14,16 +31,12 @@ if __name__ == "__main__":
     logging.getLogger().setLevel(logging.DEBUG)
     config = hazelcast.ClientConfig()
     config.network_config.addresses.append('192.168.99.100:5701')
-    config.serialization_config.data_serializable_factories[1] = {1: Reading}
+    config.serialization_config.add_portable_factory(1, {1: Reading})
 
     client = hazelcast.HazelcastClient(config)
     myList = client.get_list("hazelcaster")
     print("List size:", myList.size().result())
 
-    readings = []
-    for r in myList.get_all().result():
-        value = r.loads()
-        readings.append(Reading(value["Name"], value["Timestamp"]))
+    for item in myList.get_all().result():
+        print(item.Timestamp, item.Name)
 
-    for r in readings:
-        print(r.Timestamp, r.Name)
