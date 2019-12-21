@@ -7,7 +7,7 @@ import (
 )
 
 func Test_SimpleHazelcastClient(t *testing.T) {
-	hz := newHzClient()
+	hz := newHzClient(false)
 	for {
 		<-time.After(time.Duration(3) * time.Second)
 		readings, err := hz.fetch()

@@ -20,13 +20,11 @@ const collectionName = "hazelcaster"
 func newHzClient(clearOnStartup ...bool) *Hazelcaster {
 	hzAddress := getEnv("HZ_SERVER_ADDR", "192.168.99.100:5701")
 	hzUsername := getEnv("HZ_USERNAME", "dev")
-	hzPassword := getEnv("HZ_PASSWORD", "dev-pass")
 
 	cfg := hazelcast.NewConfig()
 	cfg.NetworkConfig().SSLConfig().SetEnabled(false)
 	cfg.NetworkConfig().AddAddress(hzAddress)
 	cfg.GroupConfig().SetName(hzUsername)
-	cfg.GroupConfig().SetPassword(hzPassword)
 
 	discoveryCfg := config.NewCloudConfig()
 	discoveryCfg.SetEnabled(false)
@@ -45,8 +43,8 @@ func newHzClient(clearOnStartup ...bool) *Hazelcaster {
 	if len(clearOnStartup) == 0 || len(clearOnStartup) == 1 && clearOnStartup[0] {
 		l, err := hazelcastClient.GetList(collectionName)
 		if err == nil {
-			err := l.Clear()
-			log.Println("Clearing list... success:", err == nil)
+			ok, _ := l.Destroy()
+			log.Println("Destroying list... success:", ok)
 		}
 	}
 	return &Hazelcaster{client: hazelcastClient}
