@@ -5,6 +5,7 @@ import (
 	"github.com/hazelcast/hazelcast-go-client"
 	"github.com/hazelcast/hazelcast-go-client/config"
 	"github.com/hazelcast/hazelcast-go-client/config/property"
+	"github.com/hazelcast/hazelcast-go-client/core"
 	"github.com/hazelcast/hazelcast-go-client/core/logger"
 	"log"
 	"os"
@@ -20,13 +21,11 @@ const collectionName = "hazelcaster"
 func newHzClient(clearOnStartup ...bool) *Hazelcaster {
 	hzAddress := getEnv("HZ_SERVER_ADDR", "192.168.99.100:5701")
 	hzUsername := getEnv("HZ_USERNAME", "dev")
-	hzPassword := getEnv("HZ_PASSWORD", "dev-pass")
 
 	cfg := hazelcast.NewConfig()
 	cfg.NetworkConfig().SSLConfig().SetEnabled(false)
 	cfg.NetworkConfig().AddAddress(hzAddress)
 	cfg.GroupConfig().SetName(hzUsername)
-	cfg.GroupConfig().SetPassword(hzPassword)
 
 	discoveryCfg := config.NewCloudConfig()
 	discoveryCfg.SetEnabled(false)
@@ -36,7 +35,6 @@ func newHzClient(clearOnStartup ...bool) *Hazelcaster {
 	cfg.SetProperty(property.StatisticsEnabled.Name(), "true")
 	cfg.SetProperty(property.StatisticsPeriodSeconds.Name(), "1")
 
-	cfg.SerializationConfig().AddPortableFactory(portableFactorID, &ReadingPortableFactory{})
 	hazelcastClient, err := hazelcast.NewClientWithConfig(cfg)
 	if err != nil {
 		fmt.Println(err)
@@ -45,8 +43,8 @@ func newHzClient(clearOnStartup ...bool) *Hazelcaster {
 	if len(clearOnStartup) == 0 || len(clearOnStartup) == 1 && clearOnStartup[0] {
 		l, err := hazelcastClient.GetList(collectionName)
 		if err == nil {
-			err := l.Clear()
-			log.Println("Clearing list... success:", err == nil)
+			ok, _ := l.Destroy()
+			log.Println("Destroying list... success:", ok)
 		}
 	}
 	return &Hazelcaster{client: hazelcastClient}
@@ -58,7 +56,8 @@ func (hz *Hazelcaster) persist(reading Reading) error {
 		return err
 	}
 
-	ok, err := readingsList.Add(reading)
+	json, _ := core.CreateHazelcastJSONValue(reading)
+	ok, err := readingsList.Add(json)
 	if err != nil {
 		return err
 	}
@@ -81,7 +80,10 @@ func (hz *Hazelcaster) fetch() ([]Reading, error) {
 
 	var result []Reading
 	for _, r := range slice {
-		result = append(result, r.(Reading))
+		var res Reading
+		value := r.(*core.HazelcastJSONValue)
+		_ = value.Unmarshal(&res)
+		result = append(result, res)
 	}
 
 	sort.Slice(result, func(i, j int) bool {
