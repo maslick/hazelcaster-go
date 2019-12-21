@@ -17,7 +17,7 @@ type Hazelcaster struct {
 
 const collectionName = "hazelcaster"
 
-func newHzClient() *Hazelcaster {
+func newHzClient(clearOnStartup ...bool) *Hazelcaster {
 	hzAddress := getEnv("HZ_SERVER_ADDR", "192.168.99.100:5701")
 	hzUsername := getEnv("HZ_USERNAME", "dev")
 	hzPassword := getEnv("HZ_PASSWORD", "dev-pass")
@@ -40,6 +40,14 @@ func newHzClient() *Hazelcaster {
 	hazelcastClient, err := hazelcast.NewClientWithConfig(cfg)
 	if err != nil {
 		fmt.Println(err)
+	}
+
+	if len(clearOnStartup) == 0 || len(clearOnStartup) == 1 && clearOnStartup[0] {
+		l, err := hazelcastClient.GetList(collectionName)
+		if err == nil {
+			err := l.Clear()
+			log.Println("Clearing list... success:", err == nil)
+		}
 	}
 	return &Hazelcaster{client: hazelcastClient}
 }
