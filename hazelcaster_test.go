@@ -16,7 +16,7 @@ func Test_SimpleHazelcastClient(t *testing.T) {
 		}
 
 		for _, reading := range readings {
-			log.Println(reading)
+			log.Println(reading.Timestamp, reading.Name)
 		}
 	}
 }
