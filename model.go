@@ -8,12 +8,12 @@ type Reading struct {
 }
 
 const (
-	dataClassID      = 1
+	readingClassID   = 1
 	portableFactorID = 1
 )
 
 func (d *Reading) ClassID() int32 {
-	return dataClassID
+	return readingClassID
 }
 
 func (d *Reading) FactoryID() int32 {
@@ -32,10 +32,10 @@ func (d *Reading) ReadPortable(reader serialization.PortableReader) error {
 	return reader.Error()
 }
 
-type DataPortableFactory struct{}
+type ReadingPortableFactory struct{}
 
-func (pf *DataPortableFactory) Create(classID int32) serialization.Portable {
-	if classID == dataClassID {
+func (pf *ReadingPortableFactory) Create(classID int32) serialization.Portable {
+	if classID == readingClassID {
 		return &Reading{}
 	}
 	return nil

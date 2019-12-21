@@ -36,7 +36,7 @@ func newHzClient() *Hazelcaster {
 	cfg.SetProperty(property.StatisticsEnabled.Name(), "true")
 	cfg.SetProperty(property.StatisticsPeriodSeconds.Name(), "1")
 
-	cfg.SerializationConfig().AddPortableFactory(portableFactorID, &DataPortableFactory{})
+	cfg.SerializationConfig().AddPortableFactory(portableFactorID, &ReadingPortableFactory{})
 	hazelcastClient, err := hazelcast.NewClientWithConfig(cfg)
 	if err != nil {
 		fmt.Println(err)
