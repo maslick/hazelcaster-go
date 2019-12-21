@@ -12,9 +12,10 @@ import (
 )
 
 type Hazelcaster struct {
-	client         hazelcast.Client
-	collectionName string
+	client hazelcast.Client
 }
+
+const collectionName = "hazelcaster"
 
 func newHzClient() *Hazelcaster {
 	hzAddress := getEnv("HZ_SERVER_ADDR", "192.168.99.100:5701")
@@ -40,11 +41,11 @@ func newHzClient() *Hazelcaster {
 	if err != nil {
 		fmt.Println(err)
 	}
-	return &Hazelcaster{client: hazelcastClient, collectionName: "hazelcaster"}
+	return &Hazelcaster{client: hazelcastClient}
 }
 
 func (hz *Hazelcaster) persist(reading Reading) error {
-	readingsList, err := hz.client.GetList(hz.collectionName)
+	readingsList, err := hz.client.GetList(collectionName)
 	if err != nil {
 		return err
 	}
@@ -58,7 +59,7 @@ func (hz *Hazelcaster) persist(reading Reading) error {
 }
 
 func (hz *Hazelcaster) fetch() ([]Reading, error) {
-	list, err := hz.client.GetList(hz.collectionName)
+	list, err := hz.client.GetList(collectionName)
 	if err != nil {
 		return nil, err
 	}
